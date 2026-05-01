@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Vendedor {
+  ven_id               Int     @id @default(autoincrement())
+  ven_primer_nombre    String
+  ven_segundo_nombre   String?
+  ven_primer_apellido  String
+  ven_segundo_apellido String?
+  ven_password         String
+  ventas               Venta[]
+}
+
+model Clientes {
+  cli_id               Int     @id @default(autoincrement())
+  cli_primer_nombre    String
+  cli_segundo_nombre   String?
+  cli_primer_apellido  String
+  cli_segundo_apellido String?
+  cli_rfc              String? @unique
+  cli_nombre_empresa   String?
+  ventas               Venta[]
+}
+
+model Categoria {
+  cat_id      Int         @id @default(autoincrement())
+  cat_tipo    String
+  productos   Productos[]
+  proveedores Proveedor[]
+}
+
+model Productos {
+  pro_id       Int           @id @default(autoincrement())
+  pro_nombre   String
+  pro_precio   Decimal       @db.Decimal(10, 2)
+  pro_costo    Decimal       @db.Decimal(10, 2)
+  pro_stock    Int           @default(0)
+  cat_id       Int
+  items_compra Item_compra[]
+  items_venta  Item_venta[]
+  categoria    Categoria     @relation(fields: [cat_id], references: [cat_id])
+}
+
+model Proveedor {
+  prov_id     Int       @id @default(autoincrement())
+  prov_nombre String
+  cat_id      Int
+  compras     Compras[]
+  categoria   Categoria @relation(fields: [cat_id], references: [cat_id])
+}
+
+model Compras {
+  com_id         Int           @id @default(autoincrement())
+  com_fecha      DateTime      @default(now())
+  com_monto      Decimal       @db.Decimal(10, 2)
+  com_iva        Decimal       @db.Decimal(10, 2)
+  com_gran_total Decimal       @db.Decimal(10, 2)
+  prov_id        Int
+  proveedor      Proveedor     @relation(fields: [prov_id], references: [prov_id])
+  items          Item_compra[]
+}
+
+model Venta {
+  venta_id         Int          @id @default(autoincrement())
+  venta_fecha      DateTime     @default(now())
+  venta_monto      Decimal      @db.Decimal(10, 2)
+  venta_iva        Decimal      @db.Decimal(10, 2)
+  venta_gran_total Decimal      @db.Decimal(10, 2)
+  cli_id           Int
+  ven_id           Int
+  items            Item_venta[]
+  cliente          Clientes     @relation(fields: [cli_id], references: [cli_id])
+  vendedor         Vendedor     @relation(fields: [ven_id], references: [ven_id])
+}
+
+model Item_compra {
+  item_id_compra           Int       @id @default(autoincrement())
+  item_cantidad_compra     Int
+  item_precio_total_compra Decimal   @db.Decimal(10, 2)
+  com_id                   Int
+  pro_id                   Int
+  compra                   Compras   @relation(fields: [com_id], references: [com_id])
+  producto                 Productos @relation(fields: [pro_id], references: [pro_id])
+}
+
+model Item_venta {
+  item_id_venta         Int       @id @default(autoincrement())
+  item_cantidad_venta   Int
+  item_precio_tot_venta Decimal   @db.Decimal(10, 2)
+  venta_id              Int
+  pro_id                Int
+  producto              Productos @relation(fields: [pro_id], references: [pro_id])
+  venta                 Venta     @relation(fields: [venta_id], references: [venta_id])
+}
